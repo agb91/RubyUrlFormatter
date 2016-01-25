@@ -29,6 +29,10 @@ end
 def getResponse(u)
   begin
     response = Net::HTTP.get_response(URI(u))
+    if response.code.to_s=="404"
+      puts "404 error"
+      exit
+    end
   rescue SocketError
     puts "I believe it's not a real url"
     exit
@@ -109,7 +113,8 @@ end
 inp = "http://tinyurl.com/hdzfyrq"
 #inp = "google.it"
 #inp = "https://www.glassdoor.com/index.htm"
-#inp = 'gatto'
+#inp = "gatto"
+#inp = "http://www.wired.it/internet/web/2015/05/05/15-pagine-errore-404/vcd"
 
 printer("INIZIALE", inp)
 r = normalizetor(inp, 0)
