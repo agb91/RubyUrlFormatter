@@ -29,13 +29,15 @@ end
 def getResponse(u)
   begin
     response = Net::HTTP.get_response(URI(u))
-    if response.code.to_s=="404"
-      puts "404 error"
-      exit
-    end
+    #if response.code.to_s=="500"
+    #  puts "500 error"
+    #end
+    #if response.code.to_s=="404"
+    #  puts "404 error"
+    #end
   rescue SocketError
     puts "I believe it's not a real url"
-    exit
+    raise Error
   end
   response
 end
@@ -94,14 +96,22 @@ def norm(i)
 end
 
 def normalizetor(input, verbose)
-   #eventually add http:// if there isn't
-  ris = addHTTP(input)
-
-  ris = tryToFollow(ris, 10, 0)
-
-  ris = norm(ris)
-
-  ris = removeSinHttp(ris,0)
+  begin
+    ris = addHTTP(input)
+    ris = tryToFollow(ris, 10, verbose)
+    ris = norm(ris)
+    ris = removeSinHttp(ris, verbose)
+  rescue SocketError, NameError
+    puts "this seems to be not a real url, I'll return fail"
+    ris = "fail"
+  rescue Interrupt
+    puts "you pressed CTRL + C"
+    ris = "fail"
+  rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Errno::ENETUNREACH,
+       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, Error => e
+    puts "Generic network error: " + e.to_s
+    ris = "fail"
+  end
 
   ris
 end
@@ -110,8 +120,8 @@ end
 
 
 #inp = "http://blog.kischuk.com/2008/06/23/create-tinyurl-like-urls-in-ruby/"
-inp = "http://tinyurl.com/hdzfyrq"
-#inp = "google.it"
+#inp = "http://tinyurl.com/hdzfyrq"
+inp = "google.it"
 #inp = "https://www.glassdoor.com/index.htm"
 #inp = "gatto"
 #inp = "http://www.wired.it/internet/web/2015/05/05/15-pagine-errore-404/vcd"
